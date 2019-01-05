@@ -1,0 +1,70 @@
+#!/usr/bin/env python3
+
+import logging
+import quizarium
+import search
+from telegram_config import TelegramConfig
+from telethon import TelegramClient, events
+from telethon.tl.types import PeerChat, PeerChannel, PeerUser
+
+logging.basicConfig(level=logging.INFO)
+
+QUIZARIUM_USER_ID = 155670507
+
+config = TelegramConfig.from_environment()
+
+
+def get_id(peer):
+    if isinstance(peer, PeerChat):
+        return peer.chat_id
+    elif isinstance(peer, PeerChannel):
+        return peer.channel_id
+    elif isinstance(peer, PeerUser):
+        return peer.user_id
+    else:
+        raise ValueError('invalid peer:', peer)
+
+
+client = TelegramClient(config.username, config.api_id, config.api_hash)
+
+current_question_and_search_results = {}
+
+additional_stopwords = {'visible', 'visible part', 'part', 'endif'}
+
+
+@client.on(events.NewMessage(incoming=True,
+                             from_users=(QUIZARIUM_USER_ID,)))
+async def my_event_handler(event):
+    global current_question_and_search_results
+
+    logging.debug('event: %s', event)
+    message = event.message.message
+    chat_id = get_id(event.to_id)
+
+    logging.debug('CHAT_ID=%s message: %s', chat_id, message)
+    if message:
+        if '▶️' in message:
+            question = quizarium.get_question(message)
+            logging.info('CHAT_ID=%s getting search results for question: %s', chat_id, question)
+            search_results = search.get_search_results(question)
+
+            current_question_and_search_results[chat_id] = (question, search_results)
+        elif '\nHint:  ' in message:
+            if chat_id in current_question_and_search_results:
+                question, search_results = current_question_and_search_results[chat_id]
+                hint = quizarium.get_hint(message)
+                if hint:
+                    logging.info('CHAT_ID=%s got hint: %s', chat_id, hint)
+                    candidate_answers = search.evaluate_candidate_answers(search_results, hint,
+                                                                          question=question,
+                                                                          additional_stopwords=additional_stopwords)
+                    if candidate_answers:
+                        logging.info('CHAT_ID=%s got candidate answers: %s', chat_id, candidate_answers)
+                        answer = search.get_best_match(candidate_answers)
+                        if answer:
+                            logging.info('CHAT_ID=%s replying with answer: %s', chat_id, answer)
+                            await event.respond(answer.capitalize())
+
+
+client.start(config.phone, config.password)
+client.run_until_disconnected()
