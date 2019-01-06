@@ -1,6 +1,7 @@
 import re
 
 hint_regex = re.compile(r'^Hint:  (.+)$', re.MULTILINE)
+answer_regex = re.compile(r'^(?:⛔️ Nobody guessed\. The correct answer was ([\w ]+)|✅ Yes, ([\w ]+)!)')
 
 
 def get_question(message):
@@ -11,3 +12,10 @@ def get_hint(message):
     match = hint_regex.search(message)
     if match:
         return match.group(1)
+
+
+def get_answer(message):
+    match = answer_regex.search(message)
+    if match:
+        first, second = match.groups()
+        return first or second
