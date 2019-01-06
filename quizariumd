@@ -28,7 +28,7 @@ def get_id(peer):
 client = TelegramClient(config.username, config.api_id, config.api_hash)
 
 current_question_and_search_results = {}
-answer_attempts = set()
+answer_attempts = {}
 
 additional_stopwords = {'visible', 'visible part', 'part', 'endif'}
 
@@ -50,22 +50,23 @@ async def my_event_handler(event):
             search_results = search.get_search_results(question)
 
             current_question_and_search_results[chat_id] = (question, search_results)
-            answer_attempts = set()
+            answer_attempts[chat_id] = set()
         elif '\nHint:  ' in message:
             if chat_id in current_question_and_search_results:
                 question, search_results = current_question_and_search_results[chat_id]
                 hint = quizarium.get_hint(message)
                 if hint:
                     logging.info('CHAT_ID=%s got hint: %s', chat_id, hint)
+                    stopwords = additional_stopwords | answer_attempts[chat_id]
                     candidate_answers = search.evaluate_candidate_answers(search_results, hint,
                                                                           question=question,
-                                                                          additional_stopwords=additional_stopwords | answer_attempts)
+                                                                          additional_stopwords=stopwords)
                     if candidate_answers:
                         logging.info('CHAT_ID=%s got candidate answers: %s', chat_id, candidate_answers)
                         answer = search.get_best_match(candidate_answers)
                         if answer:
                             logging.info('CHAT_ID=%s replying with answer: %s', chat_id, answer)
-                            answer_attempts.add(answer)
+                            answer_attempts[chat_id].add(answer)
                             await event.respond(answer.capitalize())
 
 
