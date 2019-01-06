@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.com/yi-jiayu/quizariumd.svg?branch=master)](https://travis-ci.com/yi-jiayu/quizariumd)
+[![codecov](https://codecov.io/gh/yi-jiayu/quizariumd/branch/master/graph/badge.svg)](https://codecov.io/gh/yi-jiayu/quizariumd)
+
 # Quizariumd
 Automatically plays Quizarium for you using the Telegram API
 
