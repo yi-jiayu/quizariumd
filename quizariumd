@@ -66,7 +66,7 @@ async def my_event_handler(event):
                         if answer:
                             logging.info('CHAT_ID=%s replying with answer: %s', chat_id, answer)
                             answer_attempts.add(answer)
-                            await event.respond(answer.capitalize)
+                            await event.respond(answer.capitalize())
 
 
 client.start(config.phone, config.password)
