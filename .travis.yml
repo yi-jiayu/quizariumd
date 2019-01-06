@@ -1,0 +1,9 @@
+language: python
+python:
+  - "3.7"
+script:
+  - python runtests.py
+after_success:
+  - pip install codecov coverage
+  - coverage run runtests.py
+  - codecov
