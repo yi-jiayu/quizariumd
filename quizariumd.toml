@@ -1,5 +1,6 @@
 use_test_bank = true
 test_bank_location = "questions.sqlite"
+sentry_dsn = ""
 
 [telegram]
 # you can provide either session_file or username. session_file takes

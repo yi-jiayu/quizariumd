@@ -3,6 +3,7 @@
 import argparse
 import logging
 import toml
+import sentry_sdk
 from state_machine import StateMachine
 from telethon import TelegramClient, events
 from test_bank import TestBank
@@ -17,6 +18,9 @@ parser.add_argument('-c', '--config-file', default='quizariumd.toml', type=argpa
 args = parser.parse_args()
 
 config = toml.load(args.config_file)
+
+if 'sentry_dsn' in config:
+    sentry_sdk.init(config['sentry_dsn'])
 
 telegram_config = config['telegram']
 session = telegram_config['session_file'] or telegram_config['username']
