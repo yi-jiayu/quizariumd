@@ -2,11 +2,9 @@
 
 import argparse
 import logging
-import quizarium
-import search
 import toml
+from state_machine import StateMachine
 from telethon import TelegramClient, events
-from telethon.tl.types import PeerChat, PeerChannel, PeerUser
 
 logging.basicConfig(level=logging.INFO)
 
@@ -25,18 +23,6 @@ api_id = telegram_config['api_id']
 api_hash = telegram_config['api_hash']
 phone = telegram_config['phone']
 password = telegram_config['password']
-
-
-def get_id(peer):
-    if isinstance(peer, PeerChat):
-        return peer.chat_id
-    elif isinstance(peer, PeerChannel):
-        return peer.channel_id
-    elif isinstance(peer, PeerUser):
-        return peer.user_id
-    else:
-        raise ValueError('invalid peer:', peer)
-
 
 client = TelegramClient(session, api_id, api_hash)
 
@@ -59,44 +45,15 @@ if chat_config:
     elif include_chats and exclude_chats:
         chats = set(include_chats - exclude_chats)
 
+state_machine = StateMachine(additional_stopwords=additional_stopwords)
+
 
 @client.on(events.NewMessage(chats=chats,
                              blacklist_chats=blacklist_chats,
                              incoming=True,
                              from_users=(QUIZARIUM_USER_ID,)))
-async def my_event_handler(event):
-    global current_question_and_search_results, answer_attempts
-
-    logging.debug('event: %s', event)
-    message = event.message.message
-    chat_id = get_id(event.to_id)
-
-    logging.debug('CHAT_ID=%s message: %s', chat_id, message)
-    if message:
-        if '▶️' in message:
-            question = quizarium.get_question(message)
-            logging.info('CHAT_ID=%s getting search results for question: %s', chat_id, question)
-            search_results = search.get_search_results(question)
-
-            current_question_and_search_results[chat_id] = (question, search_results)
-            answer_attempts[chat_id] = set()
-        elif '\nHint:  ' in message:
-            if chat_id in current_question_and_search_results:
-                question, search_results = current_question_and_search_results[chat_id]
-                hint = quizarium.get_hint(message)
-                if hint:
-                    logging.info('CHAT_ID=%s got hint: %s', chat_id, hint)
-                    stopwords = additional_stopwords | answer_attempts[chat_id]
-                    candidate_answers = search.evaluate_candidate_answers(search_results, hint,
-                                                                          question=question,
-                                                                          additional_stopwords=stopwords)
-                    if candidate_answers:
-                        logging.info('CHAT_ID=%s got candidate answers: %s', chat_id, candidate_answers)
-                        answer = search.get_best_match(candidate_answers)
-                        if answer:
-                            logging.info('CHAT_ID=%s replying with answer: %s', chat_id, answer)
-                            answer_attempts[chat_id].add(answer)
-                            await event.respond(answer.capitalize())
+async def handle_message(event):
+    await state_machine.handle(event)
 
 
 client.start(phone, password)
