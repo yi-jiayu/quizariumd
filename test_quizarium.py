@@ -94,6 +94,14 @@ Name the 60s band from Manchester who had a hit with a song called "Jennifer Ecc
         actual = get_question(message)
         self.assertEqual(expected, actual)
 
+    def test_when_question_first_appears_without_round(self):
+        message = '''▶️ QUESTION  [music]
+What composer was working on his 10th symphony at the time of his death?
+[   ○   ○       ○        ]'''
+        expected = 'What composer was working on his 10th symphony at the time of his death?'
+        actual = get_question(message)
+        self.assertEqual(expected, actual)
+
 
 class TestGetHint(unittest.TestCase):
     def test_when_hint_not_given_yet(self):

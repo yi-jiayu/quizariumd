@@ -1,5 +1,6 @@
 import re
 
+question_regex = re.compile(r'▶️.+\n(.+)\n')
 hint_regex = re.compile(r'^Hint:  (.+)$', re.MULTILINE)
 answer_regex = re.compile(r'^(?:⛔️ Nobody guessed\. The correct answer was ([\w ]+)|✅ Yes, ([\w ]+)!)')
 
@@ -13,7 +14,9 @@ def is_game_finished(message: str):
 
 
 def get_question(message):
-    return message.split('\n')[2]
+    match = question_regex.search(message)
+    if match:
+        return match.group(1)
 
 
 def get_hint(message):
