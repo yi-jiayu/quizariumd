@@ -25,7 +25,7 @@ api_hash = telegram_config['api_hash']
 phone = telegram_config['phone']
 password = telegram_config['password']
 
-client = TelegramClient(session, api_id, api_hash)
+client = TelegramClient(session, api_id, api_hash, sequential_updates=True)
 
 current_question_and_search_results = {}
 answer_attempts = {}
