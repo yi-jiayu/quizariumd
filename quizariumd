@@ -29,8 +29,6 @@ client = TelegramClient(session, api_id, api_hash)
 current_question_and_search_results = {}
 answer_attempts = {}
 
-additional_stopwords = {'visible', 'visible part', 'part', 'endif'}
-
 chats = None
 blacklist_chats = False
 chat_config = config['chats']
@@ -45,7 +43,7 @@ if chat_config:
     elif include_chats and exclude_chats:
         chats = set(include_chats - exclude_chats)
 
-state_machine = StateMachine(additional_stopwords=additional_stopwords)
+state_machine = StateMachine()
 
 
 @client.on(events.NewMessage(chats=chats,

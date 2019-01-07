@@ -24,9 +24,8 @@ class ChatState:
 
 
 class StateMachine:
-    def __init__(self, additional_stopwords=None):
+    def __init__(self):
         self.chat_states: Dict[int, ChatState] = {}
-        self.additional_stopwords: set = additional_stopwords or set()
 
     async def handle(self, event):
         message = event.message.message
@@ -48,11 +47,10 @@ class StateMachine:
         if not hint:
             return
         logging.info('CHAT_ID=%s got hint: %s', chat_id, hint)
-        stopwords = self.additional_stopwords | chat_state.answer_attempts
 
         candidates = search.evaluate_candidate_answers(chat_state.search_results, hint,
                                                        question=chat_state.question,
-                                                       additional_stopwords=stopwords)
+                                                       additional_stopwords=chat_state.answer_attempts)
         if not candidates:
             return
         logging.info('CHAT_ID=%s got candidate answers: %s', chat_id, candidates)

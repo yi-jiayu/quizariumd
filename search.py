@@ -1,6 +1,6 @@
 import re
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Comment
 from collections import Counter
 
 ddg_query_base = 'https://duckduckgo.com/html/?q='
@@ -13,6 +13,12 @@ with open('stopwords.txt') as f:
 def get_search_results(question):
     resp = requests.get(ddg_query_base + question)
     soup = BeautifulSoup(resp.text, features='html.parser')
+
+    # remove comments
+    comments = soup.findAll(text=lambda text: isinstance(text, Comment))
+    for comment in comments:
+        comment.extract()
+
     page_text = soup.findAll(text=True)
     not_whitespace = (t for t in page_text if whitespace_regexp.fullmatch(t) is None)
     stripped = [t.strip() for t in not_whitespace]
