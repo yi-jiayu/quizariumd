@@ -8,6 +8,10 @@ def is_new_question(message):
     return '▶️' in message
 
 
+def is_game_finished(message: str):
+    return message.startswith('🏁')
+
+
 def get_question(message):
     return message.split('\n')[2]
 

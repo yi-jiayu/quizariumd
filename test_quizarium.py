@@ -35,6 +35,55 @@ Hint:  _ _ _ _ _ _ _
         self.assertFalse(actual)
 
 
+class TestIsGameFinished(unittest.TestCase):
+    def test_game_finished1(self):
+        message = '''🏁 And the winners are:
+  🏆 Jiayu   40 points (answers: 10)
+
+
+If you enjoy the game please rate our bot: https://telegram.me/storebot?start=QuizariumBot'''
+        finished = is_game_finished(message)
+        self.assertTrue(finished)
+
+    def test_game_finished2(self):
+        message = '''🏁 Weirdly, nobody won. On the bright side, nobody lost either!
+
+If you enjoy the game please rate our bot: https://telegram.me/storebot?start=QuizariumBot'''
+        finished = is_game_finished(message)
+        self.assertTrue(finished)
+
+    def test_not_game_finished1(self):
+        message = '''Round 7/10
+▶️ QUESTION  [Music Bands]
+Name the 60s band from Manchester who had a hit with a song called "Jennifer Eccles"?
+[   ○   ○       ○        ]'''
+        finished = is_game_finished(message)
+        self.assertFalse(finished)
+
+    def test_not_game_finished2(self):
+        message = '''Name the 60s band from Manchester who had a hit with a song called "Jennifer Eccles"?
+Hint:  _ _ _ _ _ _ _
+[••••   ○       ○        ]'''
+        finished = is_game_finished(message)
+        self.assertFalse(finished)
+
+    def test_not_game_finished3(self):
+        message = '''🐱🚀🌕 We (Quizarium devs) released a new iOS and Android puzzle game Catomic where cats go to space and colonize Mars. Check it out!
+ 🍏 App Store | 🤖 Google Play | 📲 catomic.on-5.com'''
+        finished = is_game_finished(message)
+        self.assertFalse(finished)
+
+    def test_not_game_finished4(self):
+        message = '''✅ Yes, Hollies!
+
+🏅 Hui Wen Wong +1
+
+📢 Share the wisdom:  FB | TW
+⚖ Rate this question:   👍 /good  or   👎 /bad ?'''
+        finished = is_game_finished(message)
+        self.assertFalse(finished)
+
+
 class TestGetQuestion(unittest.TestCase):
     def test_when_question_first_appears(self):
         message = '''Round 7/10
