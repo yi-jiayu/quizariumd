@@ -5,6 +5,7 @@ import logging
 import toml
 from state_machine import StateMachine
 from telethon import TelegramClient, events
+from test_bank import TestBank
 
 logging.basicConfig(level=logging.INFO)
 
@@ -43,7 +44,13 @@ if chat_config:
     elif include_chats and exclude_chats:
         chats = set(include_chats - exclude_chats)
 
-state_machine = StateMachine()
+if 'use_test_bank' not in config or config['use_test_bank'] is True:
+    test_bank_location = config.get('test_bank_location', 'questions.sqlite')
+    test_bank = TestBank(test_bank_location)
+else:
+    test_bank = None
+
+state_machine = StateMachine(test_bank=test_bank)
 
 
 @client.on(events.NewMessage(chats=chats,

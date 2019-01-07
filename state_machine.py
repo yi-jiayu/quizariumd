@@ -1,16 +1,15 @@
 import logging
 import quizarium
 import search
-from telethon.tl.types import PeerChat, PeerChannel, PeerUser
 from typing import Dict
 
 
 def get_id(peer):
-    if isinstance(peer, PeerChat):
+    if hasattr(peer, 'chat_id'):
         return peer.chat_id
-    elif isinstance(peer, PeerChannel):
+    elif hasattr(peer, 'channel_id'):
         return peer.channel_id
-    elif isinstance(peer, PeerUser):
+    elif hasattr(peer, 'user_id'):
         return peer.user_id
     else:
         raise ValueError('invalid peer:', peer)
@@ -24,8 +23,9 @@ class ChatState:
 
 
 class StateMachine:
-    def __init__(self):
+    def __init__(self, test_bank=None):
         self.chat_states: Dict[int, ChatState] = {}
+        self.test_bank = test_bank
 
     async def handle(self, event):
         message = event.message.message
@@ -35,7 +35,14 @@ class StateMachine:
 
         if quizarium.is_new_question(message):
             question = quizarium.get_question(message)
-            logging.info('CHAT_ID=%s getting search results for question: %s', chat_id, question)
+            logging.info('CHAT_ID=%s got question: %s', chat_id, question)
+
+            if self.test_bank:
+                answer = self.test_bank.get_answer(question)
+                if answer:
+                    logging.info('CHAT_ID=%s responding with answer from test bank: %s', chat_id, answer)
+                    return await event.respond(answer)
+
             search_results = search.get_search_results(question)
             self.chat_states[chat_id] = ChatState(question, search_results)
             return
@@ -43,20 +50,26 @@ class StateMachine:
         if chat_id not in self.chat_states:
             return
         chat_state = self.chat_states[chat_id]
+
         hint = quizarium.get_hint(message)
-        if not hint:
-            return
-        logging.info('CHAT_ID=%s got hint: %s', chat_id, hint)
+        if hint:
+            logging.info('CHAT_ID=%s got hint: %s', chat_id, hint)
+            candidates = search.evaluate_candidate_answers(chat_state.search_results, hint,
+                                                           question=chat_state.question,
+                                                           additional_stopwords=chat_state.answer_attempts)
+            logging.info('CHAT_ID=%s got candidate answers: %s', chat_id, candidates)
+            if not candidates:
+                return
 
-        candidates = search.evaluate_candidate_answers(chat_state.search_results, hint,
-                                                       question=chat_state.question,
-                                                       additional_stopwords=chat_state.answer_attempts)
-        if not candidates:
+            answer = search.get_best_match(candidates)
+            if answer:
+                chat_state.answer_attempts.add(answer)
+                logging.info('CHAT_ID=%s replying with answer: %s', chat_id, answer)
+                return await event.respond(answer.capitalize())
             return
-        logging.info('CHAT_ID=%s got candidate answers: %s', chat_id, candidates)
 
-        answer = search.get_best_match(candidates)
+        answer = quizarium.get_answer(message)
         if answer:
-            chat_state.answer_attempts.add(answer)
-            logging.info('CHAT_ID=%s replying with answer: %s', chat_id, answer)
-            await event.respond(answer.capitalize())
+            logging.info('CHAT_ID=%s got answer: Q: %s A: %s', chat_id, chat_state.question, answer)
+            if self.test_bank:
+                self.test_bank.add_question(chat_state.question, answer)
