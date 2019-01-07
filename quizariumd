@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
+import argparse
 import logging
 import quizarium
 import search
-from telegram_config import TelegramConfig
+import toml
 from telethon import TelegramClient, events
 from telethon.tl.types import PeerChat, PeerChannel, PeerUser
 
@@ -11,7 +12,19 @@ logging.basicConfig(level=logging.INFO)
 
 QUIZARIUM_USER_ID = 155670507
 
-config = TelegramConfig.from_environment()
+parser = argparse.ArgumentParser(description='Start Quizarium daemon')
+parser.add_argument('-c', '--config-file', default='quizariumd.toml', type=argparse.FileType('r'),
+                    help='Config file path (default: %(default)s)', metavar='FILE')
+args = parser.parse_args()
+
+config = toml.load(args.config_file)
+
+telegram_config = config['telegram']
+session = telegram_config['session_file'] or telegram_config['username']
+api_id = telegram_config['api_id']
+api_hash = telegram_config['api_hash']
+phone = telegram_config['phone']
+password = telegram_config['password']
 
 
 def get_id(peer):
@@ -25,15 +38,31 @@ def get_id(peer):
         raise ValueError('invalid peer:', peer)
 
 
-client = TelegramClient(config.username, config.api_id, config.api_hash)
+client = TelegramClient(session, api_id, api_hash)
 
 current_question_and_search_results = {}
 answer_attempts = {}
 
 additional_stopwords = {'visible', 'visible part', 'part', 'endif'}
 
+chats = None
+blacklist_chats = False
+chat_config = config['chats']
+if chat_config:
+    include_chats = chat_config['include']
+    exclude_chats = chat_config['exclude']
+    if include_chats and not exclude_chats:
+        chats = include_chats
+    elif not include_chats and exclude_chats:
+        chats = exclude_chats
+        blacklist_chats = True
+    elif include_chats and exclude_chats:
+        chats = set(include_chats - exclude_chats)
 
-@client.on(events.NewMessage(incoming=True,
+
+@client.on(events.NewMessage(chats=chats,
+                             blacklist_chats=blacklist_chats,
+                             incoming=True,
                              from_users=(QUIZARIUM_USER_ID,)))
 async def my_event_handler(event):
     global current_question_and_search_results, answer_attempts
@@ -70,5 +99,5 @@ async def my_event_handler(event):
                             await event.respond(answer.capitalize())
 
 
-client.start(config.phone, config.password)
+client.start(phone, password)
 client.run_until_disconnected()

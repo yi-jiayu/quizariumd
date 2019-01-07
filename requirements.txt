@@ -46,6 +46,7 @@ soupsieve==1.6.2
 Telethon==1.5.1
 terminado==0.8.1
 testpath==0.4.2
+toml==0.10.0
 tornado==5.1.1
 traitlets==4.3.2
 urllib3==1.24.1

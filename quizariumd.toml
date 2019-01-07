@@ -1,0 +1,29 @@
+[telegram]
+# you can provide either session_file or username. session_file takes
+# precedence over username.
+
+# path to a Telethon session file
+session_file = ""
+
+# will create and use a session file called {username}.session in
+# the working directory
+username = ""
+
+# see https://core.telegram.org/api/obtaining_api_id for details on how to
+# obtain an api_id and api_hash
+api_id = ""
+api_hash = ""
+
+phone = ""
+password = ""
+
+[chats]
+# make sure to specify chat ids as integers
+# if both include and exclude are provided, include will be used with
+# any chats specified in excluded removed
+
+# if not empty, only respond to the specified chats
+include = []
+
+# if not empty, do not respond to the specified chats
+exclude = []
