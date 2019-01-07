@@ -2,6 +2,39 @@ import unittest
 from quizarium import *
 
 
+class TestIsNewQuestion(unittest.TestCase):
+    def test_new_question(self):
+        message = '''Round 7/10
+▶️ QUESTION  [Music Bands]
+Name the 60s band from Manchester who had a hit with a song called "Jennifer Eccles"?
+[   ○   ○       ○        ]'''
+        actual = is_new_question(message)
+        self.assertTrue(actual)
+
+    def test_not_new_question1(self):
+        message = '''Name the 60s band from Manchester who had a hit with a song called "Jennifer Eccles"?
+Hint:  _ _ _ _ _ _ _
+[••••   ○       ○        ]'''
+        actual = is_new_question(message)
+        self.assertFalse(actual)
+
+    def test_not_new_question2(self):
+        message = '''🐱🚀🌕 We (Quizarium devs) released a new iOS and Android puzzle game Catomic where cats go to space and colonize Mars. Check it out!
+ 🍏 App Store | 🤖 Google Play | 📲 catomic.on-5.com'''
+        actual = is_new_question(message)
+        self.assertFalse(actual)
+
+    def test_not_new_question3(self):
+        message = '''✅ Yes, Hollies!
+
+🏅 Hui Wen Wong +1
+
+📢 Share the wisdom:  FB | TW
+⚖ Rate this question:   👍 /good  or   👎 /bad ?'''
+        actual = is_new_question(message)
+        self.assertFalse(actual)
+
+
 class TestGetQuestion(unittest.TestCase):
     def test_when_question_first_appears(self):
         message = '''Round 7/10

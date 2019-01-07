@@ -4,6 +4,10 @@ hint_regex = re.compile(r'^Hint:  (.+)$', re.MULTILINE)
 answer_regex = re.compile(r'^(?:⛔️ Nobody guessed\. The correct answer was ([\w ]+)|✅ Yes, ([\w ]+)!)')
 
 
+def is_new_question(message):
+    return '▶️' in message
+
+
 def get_question(message):
     return message.split('\n')[2]
 
