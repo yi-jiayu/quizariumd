@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+if [ "$#" -le 2 ]; then
+	printf "usage: %s db1 db2 table\nmerges table from db2 into db1\n" $(basename $0)
+fi
+
+db1=$1
+db2=$2
+table=$3
+
+sqlite3 $db1 <<EOF
+attach '$db2' as toMerge;
+begin;
+insert or ignore into $table select * from toMerge.$table;
+commit;
+detach toMerge;
+EOF
+
