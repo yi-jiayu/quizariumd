@@ -33,12 +33,14 @@ class StateMachine:
         if not message:
             return
         chat_id = get_id(event.to_id)
-        try:
-            await self._handle(event, message, chat_id)
-        except ChatWriteForbiddenError:
-            logging.info('CHAT_ID=%s chat write forbidden', chat_id)
+        answer = self._handle(message, chat_id)
+        if answer:
+            try:
+                await event.respond(answer)
+            except ChatWriteForbiddenError:
+                logging.info('CHAT_ID=%s chat write forbidden', chat_id)
 
-    async def _handle(self, event, message, chat_id):
+    def _handle(self, message, chat_id):
         if quizarium.is_new_question(message):
             question = quizarium.get_question(message)
             logging.info('CHAT_ID=%s got question: %s', chat_id, question)
@@ -47,7 +49,7 @@ class StateMachine:
                 answer = self.test_bank.get_answer(question)
                 if answer:
                     logging.info('CHAT_ID=%s responding with answer from test bank: %s', chat_id, answer)
-                    return await event.respond(answer)
+                    return answer
 
             search_results = search.get_search_results(question)
             self.chat_states[chat_id] = ChatState(question, search_results)
@@ -71,7 +73,7 @@ class StateMachine:
             if answer:
                 chat_state.answer_attempts.add(answer)
                 logging.info('CHAT_ID=%s replying with answer: %s', chat_id, answer)
-                return await event.respond(answer.capitalize())
+                return answer.capitalize()
             return
 
         answer = quizarium.get_answer(message)
