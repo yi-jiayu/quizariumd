@@ -20,7 +20,17 @@ args = parser.parse_args()
 config = toml.load(args.config_file)
 
 if 'sentry_dsn' in config:
-    sentry_sdk.init(config['sentry_dsn'])
+    from subprocess import check_output
+
+    release = None
+    try:
+        output = check_output(['git', 'describe', '--always'], text=True)
+        if output:
+            release = output.strip()
+    except:
+        pass
+
+    sentry_sdk.init(config['sentry_dsn'], release=release)
 
 telegram_config = config['telegram']
 session = telegram_config['session_file'] or telegram_config['username']
