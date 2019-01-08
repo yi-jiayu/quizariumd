@@ -1,7 +1,9 @@
 import asyncio
 from state_machine import StateMachine, ChatState
-from unittest import TestCase
+from telethon.errors import ChatWriteForbiddenError
+from test_bank import TestBank
 from unittest.mock import Mock, MagicMock
+from unittest import TestCase
 
 
 # solution from https://stackoverflow.com/a/51399767¬
@@ -51,3 +53,17 @@ Name the 60s band from Manchester who had a hit with a song called "Jennifer Ecc
         loop = asyncio.get_event_loop()
         loop.run_until_complete(state_machine.handle(event))
         test_bank.add_question.assert_called_with(question, 'Hollies')
+
+    def test_handle_chat_write_forbidden_error_when_responding_from_test_bank(self):
+        event = mock_event('''Round 7/10
+▶️ QUESTION  [Music Bands]
+Name the 60s band from Manchester who had a hit with a song called "Jennifer Eccles"?
+[   ○   ○       ○        ]''')
+        event.respond.side_effect = ChatWriteForbiddenError(event)
+        test_bank = Mock(spec=TestBank)
+        test_bank.get_answer.return_value = 'Hollies'
+
+        state_machine = StateMachine(test_bank=test_bank)
+
+        loop = asyncio.new_event_loop()
+        loop.run_until_complete(state_machine.handle(event))

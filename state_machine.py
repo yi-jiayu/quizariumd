@@ -1,6 +1,7 @@
 import logging
 import quizarium
 import search
+from telethon.errors import ChatWriteForbiddenError
 from typing import Dict
 
 
@@ -32,7 +33,12 @@ class StateMachine:
         if not message:
             return
         chat_id = get_id(event.to_id)
+        try:
+            await self._handle(event, message, chat_id)
+        except ChatWriteForbiddenError:
+            logging.info('CHAT_ID=%s chat write forbidden', chat_id)
 
+    async def _handle(self, event, message, chat_id):
         if quizarium.is_new_question(message):
             question = quizarium.get_question(message)
             logging.info('CHAT_ID=%s got question: %s', chat_id, question)
