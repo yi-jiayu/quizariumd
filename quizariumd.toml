@@ -1,6 +1,20 @@
-use_test_bank = true
-test_bank_location = "questions.sqlite"
 sentry_dsn = ""
+
+[behaviour]
+    # if true, try to look up answers from the test bank
+    use_test_bank = true
+
+    # must be provided to use the test bank
+    test_bank_location = "questions.sqlite"
+
+    # probability that we try to answer a question
+    try_answer_probability = 1.0
+
+    # probability that we will use a test bank answer when available
+    use_test_bank_probability = 1.0
+
+    # probability that we will make a guess when we have a candidate answer
+    use_candidate_answer_probability = 1.0
 
 [telegram]
 # you can provide either session_file or username. session_file takes

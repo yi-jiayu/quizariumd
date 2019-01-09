@@ -1,0 +1,12 @@
+[Unit]
+Description=quizariumd
+After=network.target
+
+[Service]
+Type=simple
+User=ec2-user
+WorkingDirectory=/home/ec2-user/quizariumd
+ExecStart=/home/ec2-user/quizariumd/venv/bin/python quizariumd
+
+[Install]
+WantedBy=multi-user.target

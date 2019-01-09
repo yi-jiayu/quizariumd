@@ -3,3 +3,5 @@ source =
     .
 omit =
     venv/*
+    test_*
+    test/test_*

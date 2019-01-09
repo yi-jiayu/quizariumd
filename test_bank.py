@@ -2,6 +2,8 @@ import sqlite3
 
 
 class TestBank:
+    __test__ = False  # prevent this class from being treated as test (since it starts with Test*)
+
     def __init__(self, filename):
         self.filename = filename
         self.conn = sqlite3.connect(filename)

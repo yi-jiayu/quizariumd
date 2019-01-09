@@ -58,13 +58,18 @@ if chat_config:
     elif include_chats and exclude_chats:
         chats = set(include_chats - exclude_chats)
 
-if 'use_test_bank' not in config or config['use_test_bank'] is True:
-    test_bank_location = config.get('test_bank_location', 'questions.sqlite')
-    test_bank = TestBank(test_bank_location)
-else:
-    test_bank = None
+behaviour_config = config.get('behaviour', {})
+use_test_bank = behaviour_config.get('use_test_bank', True)
+test_bank_location = behaviour_config['test_bank_location'] if use_test_bank else None
+try_answer_probability = behaviour_config.get('try_answer_probability', 1.0)
+use_test_bank_probability = behaviour_config.get('use_test_bank_probability', 1.0)
+use_candidate_answer_probability = behaviour_config.get('use_candidate_answer_probability', 1.0)
 
-state_machine = StateMachine(test_bank=test_bank)
+test_bank = TestBank(test_bank_location) if use_test_bank else None
+state_machine = StateMachine(test_bank=test_bank,
+                             try_answer_probability=try_answer_probability,
+                             use_test_bank_probability=use_test_bank_probability,
+                             use_candidate_answer_probability=use_candidate_answer_probability)
 
 
 @client.on(events.NewMessage(chats=chats,

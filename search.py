@@ -2,11 +2,12 @@ import re
 import requests
 from bs4 import BeautifulSoup, Comment
 from collections import Counter
+from os.path import dirname, join
 
 ddg_query_base = 'https://duckduckgo.com/html/?q='
 whitespace_regexp = re.compile(r'\s+')
 
-with open('stopwords.txt') as f:
+with open(join(dirname(__file__), 'stopwords.txt')) as f:
     stopwords = set(f.read().strip().split('\n'))
 
 
