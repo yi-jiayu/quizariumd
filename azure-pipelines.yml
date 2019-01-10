@@ -26,7 +26,7 @@ jobs:
   - script: python -m pip install pipenv && pipenv install --dev
     displayName: 'Install dependencies'
 
-  - script: pipenv run pytest --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
+  - script: pipenv run pytest --junitxml=junit/test-results.xml --cov --cov-report=xml --cov-report=html
     displayName: 'pytest'
 
   - task: PublishTestResults@2
@@ -38,5 +38,5 @@ jobs:
   - task: PublishCodeCoverageResults@1
     inputs:
       codeCoverageTool: Cobertura
-      summaryFileLocation: '$(System.DefaultWorkingDirectory)/**/coverage.xml'
-      reportDirectory: '$(System.DefaultWorkingDirectory)/**/htmlcov'
+      summaryFileLocation: '**/coverage.xml'
+      reportDirectory: '**/htmlcov'
