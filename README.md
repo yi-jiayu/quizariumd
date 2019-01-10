@@ -1,3 +1,4 @@
+[![Build Status](https://dev.azure.com/yijiayu/quizariumd/_apis/build/status/yi-jiayu.quizariumd?branchName=master)](https://dev.azure.com/yijiayu/quizariumd/_build/latest?definitionId=1?branchName=master)
 [![Build Status](https://travis-ci.com/yi-jiayu/quizariumd.svg?branch=master)](https://travis-ci.com/yi-jiayu/quizariumd)
 [![codecov](https://codecov.io/gh/yi-jiayu/quizariumd/branch/master/graph/badge.svg)](https://codecov.io/gh/yi-jiayu/quizariumd)
 
